@@ -1,0 +1,125 @@
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/html4/frameset.dtd">
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+body { background-color: #acc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 0px solid #ccc;
+  background-color: #fff;
+  display: inline-block;
+  margin: none;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  font-size: 17px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+  font-weight: bold;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.panel
+{ background: #FFF;
+  clear: right;
+  float: left;
+  border-radius: 20px;
+  width: 250px;
+  -moz-border-radius: 20px;
+  border: 1px solid #111; 
+  padding: 15px;
+  margin: 0px 15px 15px 0px; }
+  
+.tpanel
+{ background: #F88;
+  clear: right;
+  float: left;
+  border-radius: 20px;
+  width: 100px;
+  -moz-border-radius: 20px;
+  border: 1px solid #111; 
+  padding: 15px;
+  margin: 0px 15px 15px 0px; }
+  
+.clickable
+{ background: #cfc;	}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="functions.js"></script>
+
+</head>
+<body style="padding:0px;margin:0px;border:0px;">
+
+<div class="tab">
+<button class="tablinks active" onclick="showdiv(event, 'D1')">PID</button>
+<button class="tablinks" onclick="showdiv(event, 'D2')">Probe</button>
+<button class="tablinks" onclick="showdiv(event, 'D3')">Calib'</button>
+<button class="tablinks" onclick="showdiv(event, 'D4')">Passwd</button>
+</div>
+<br>
+<div style="padding:20px;margin:0px;border:0px;width:257px;">
+  <div class="divsh" id='D1' style="display:block;">
+	<div id="pidinterval" class="panel">Data not loaded</div>
+	<div id="kP" class="panel">Data not loaded</div>
+	<div id="kI" class="panel">Data not loaded</div>
+	<div id="kD" class="panel">Data not loaded</div>
+  </div>
+  <div class="divsh" id='D2' style="display:none;">
+    <div id="p1sharta" class="panel">Data not loaded</div>
+	<div id="p1shartb" class="panel">Data not loaded</div>
+	<div id="p1shartc" class="panel">Data not loaded</div>
+	<div id="p2sharta" class="panel">Data not loaded</div>
+	<div id="p2shartb" class="panel">Data not loaded</div>
+	<div id="p2shartc" class="panel">Data not loaded</div>
+	<br>
+	<a id="probe1" href="/api/probe1">Set Values for Probe 1</a><br>
+	<a id="probe2" href="/api/probe2">Set Values for Probe 2</a><br>
+  </div>
+  <div class="divsh" id='D3' style="display:none;">
+	<div id="tune" class="panel">Data not loaded</div>
+	<div id="shift" class="panel">Data not loaded</div>
+  </div>
+  <div class="divsh" id='D4' style="display:none;">
+    <div id='passwordform'>
+		Old Password:<br>
+		<input id="oldpass" type="password" name="oldpassword"><br><br>
+		New Password:<br>
+		<input id="newpass" type="password" name="newpassword"><br>
+		Retype Password:<br>
+		<input id="retype" type="password" name="retypepassword"><br>
+		<input id="cpbutt" type="button" value="Change Password" onclick="calcoldnewmd5()"> 
+	</div>
+	<div id="presult" style="display:none;">
+	    <p>Password change...<span id="prestxt">in progress</span></p>
+	</div>
+  </div>
+</div>
+</body>
+</html> 

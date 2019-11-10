@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+	<style>
+	body { background-color: #aacccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }
+	</style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script>
+	function retx(inputline) {
+		var linarray = inputline.split(',');
+		var timarray = linarray[0].split(':');
+		var xval = parseInt(timarray[0]) * 60 + parseInt(timarray[1]) + timarray[2] / 60.0;     // Add Fractional part here
+		return xval
+	}
+	
+	function updategraph(csvdata) {
+		var csvarray = csvdata.split('\n');
+		if (csvarray[csvarray.length-1] === "") { csvarray.pop(); } 
+		var csvline=csvarray[0];
+		if (typeof csvline === 'undefined') { $("#div1").html("Not enough data for graph - Be patient.<br>Also, make sure PID is running"); return; }
+		var vpx1=retx(csvarray[0]);   				// Find the first value from the first line
+		var vpx2=retx(csvarray[csvarray.length-1]); // Find the last value from the last line
+		var lx=vpx1;
+		for (var i=0; i<csvarray.length; i++) {
+			var x = retx(csvarray[i]);
+            if (x < lx) vpx2+=1440;                 // If times wrap round then add a days worth of minutes
+			lx=x;
+		}
+		vpx1--;vpx2++;
+		var xmult = 1440.0 / (vpx2-vpx1);
+		csvline=csvarray[0];
+		var linarray = csvline.split(',');
+		var timarray = linarray[0].split(':');
+		var ox = parseInt(timarray[0]) * 60 + parseInt(timarray[1]) + timarray[2] / 60.0;      // Add Fractional part here
+		var op1 = parseFloat(linarray[1]);
+		var op2 = parseFloat(linarray[2]);
+		var ofn = parseFloat(linarray[3]);
+		var osp = parseFloat(linarray[4]);
+		var dayn = 0;
+		var svgout = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"1690\" height=\"800\">\n";
+		svgout += "<style>\n";
+		svgout += ".svgtitle { font: italic 64px serif; fill: red; stroke: red; }\n";
+		svgout += ".axis { font: italic 16px sans-serif;}\n";
+		svgout += ".axisfan { font: italic 16px sans-serif; fill: darkblue; stroke: darkblue; }\n";
+		svgout += "</style>\n";
+		svgout += "<rect width=\"1690\" height=\"800\" fill=\"rgb(255, 240, 240)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
+		svgout += "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" x=\"200\" y=\"100\" width=\"1440\" height=\"600\">\n";
+		svgout += "<rect width=\"1440\" height=\"600\" fill=\"rgb(250, 230, 210)\" stroke-width=\"1\" stroke=\"rgb(0, 0, 0)\" />\n";
+		for (var i=1; i<csvarray.length; i++) {
+			csvline=csvarray[i];
+			linarray = csvline.split(',');
+			timarray = linarray[0].split(':');
+			var x = 1440 * dayn + parseInt(timarray[0]) * 60 + parseInt(timarray[1]) + timarray[2] / 60.0;       // Add Fractional part here
+			if (x<ox) { dayn++; x+=1440; }
+			var p1 = parseFloat(linarray[1]);
+			var p2 = parseFloat(linarray[2]);
+			var fn = parseFloat(linarray[3]);
+			var sp = parseFloat(linarray[4]);
+			svgout += "<line class=\"p1\" x1=\"" + (xmult*(ox-vpx1)).toString() + "\" y1=\"" + (600-2*op1).toString()
+			svgout += "\" x2=\"" + (xmult*(x-vpx1)).toString() + "\" y2=\"" + (600-2*p1).toString() +"\" ";
+			svgout += "stroke=\"rgb(80, 0, 0)\"  stroke-width=\"2\" />\n";
+
+			svgout += "<line class=\"p2\" x1=\"" + (xmult*(ox-vpx1)).toString() + "\" y1=\"" + (600-2*op2).toString()
+			svgout += "\" x2=\"" + (xmult*(x-vpx1)).toString() + "\" y2=\"" + (600-2*p2).toString() +"\" ";
+			svgout += "stroke=\"rgb(0, 80, 0)\"  stroke-width=\"2\" />\n";
+
+			svgout += "<line class=\"fan\" x1=\"" + (xmult*(ox-vpx1)).toString() + "\" y1=\"" + (600-2*ofn).toString()
+			svgout += "\" x2=\"" + (xmult*(x-vpx1)).toString() + "\" y2=\"" + (600-2*fn).toString() +"\" ";
+			svgout += "stroke=\"rgb(0, 0, 90)\"  stroke-width=\"2\" />\n";
+			
+			svgout += "<line class=\"target\" x1=\"" + (xmult*(ox-vpx1)).toString() + "\" y1=\"" + (600-2*osp).toString()
+			svgout += "\" x2=\"" + (xmult*(x-vpx1)).toString() + "\" y2=\"" + (600-2*sp).toString() +"\" ";
+			svgout += "stroke=\"rgb(80, 0, 80)\"  stroke-width=\"2\" />\n";
+
+			ox=x; op1=p1; op2=p2; ofn=fn; osp=sp;
+		}
+		svgout += "<g stroke-dasharray=\"5,5\" stroke=\"rgb(128, 128, 128)\" stroke-width=\"1\"   >";
+		for (var y=50;y<300;y+=50) {
+			var svgy=(600-2*y).toString();
+			svgout += "<line x1=\"0\" y1=\"" + svgy + "\" x2=\"1440\" y2=\"" + svgy + "\"/>";
+		}
+		svgout += "</g>";
+		svgout += "</svg>";
+		  
+		svgout += "<g stroke=\"black\">";
+		for (var y=50;y<300;y+=50) {
+			var svgy=(700-2*y).toString();
+			var svgyt=(706-2*y).toString();
+			svgout += "<line x1=\"200\" y1=\"" + svgy ;
+			svgout += "\" x2=\"190\" y2=\"" + svgy + "\" stroke-width=\"1\"/>";
+			svgout += "<text x=\"180\" y=\"" + svgyt + "\" text-anchor=\"end\">" + y.toString() + "</text>\n";
+		}
+		
+		var incx = parseInt( (vpx2-vpx1)/15 );
+		if (incx<1) incx=1;
+		for (var x=vpx1 + incx ; x<vpx2 ; x += incx ) {
+		    var displaytime = parseInt(x % 1440);
+			var ah=parseInt( displaytime/60 ).toString();
+			var am=parseInt( displaytime%60).toString();
+			if (am.length==1) { am = "0" + am; }
+			if (ah.length==1) { ah = "0" + ah; }
+			var svgx=((200+(x-vpx1)*xmult)).toString();
+			svgout += "<line x1=\"" + svgx + "\" y1=\"700\" x2=\"" + svgx + "\" y2=\"710\" stroke-width=\"1\" />";
+			svgout += "<text x=\"" + svgx + "\" y=\"725\" text-anchor=\"middle\">" + ah + ":" + am + "</text>\n";
+		}
+		
+		svgout += "<text x=\"920\" y=\"770\" class=\"axis\" text-anchor=\"middle\">Minutes</text>\n";
+		svgout += "<text x=\"75\" y=\"275\" class=\"axis\" text-anchor=\"middle\">Temps</text>\n";
+		svgout += "<text x=\"75\" y=\"550\" class=\"axisfan\" text-anchor=\"middle\">Fan %</text>\n";
+		svgout += "<text x=\"845\" y=\"80\" class=\"svgtitle\" text-anchor=\"middle\">Cook Graph</text>\n";
+		svgout += "</g>";
+		  
+		svgout += "</svg>";
+
+		$("#div1").html(svgout);
+
+		$('#frame1', window.parent.document).width("1694px");
+		var sheight = document.getElementsByTagName("html")[0].scrollHeight.toString()+"px";
+		$('#frame1', window.parent.document).height(sheight);
+
+	}
+	
+	$(document).ready(function(){ 
+		$.ajax({url: "/data.csv", success: function(result){ updategraph(result) }});
+	});
+	
+	window.setInterval(function(){ $.ajax({url: "/data.csv", success: function(result){ updategraph(result) }}); }, 10000);
+	
+	</script>
+  </head>
+  <body style="padding:0px;margin:0px;border:0px;">
+	<div  id="div1">Graph not loaded</div>
+	<br>
+	<a id="wipegraph" href="/api/wipegraph">Clear Graph data for new cook</a><br>
+	<a id="rawdata" href="/data.csv">Download Raw PID data in CSV format</a><br>
+	<a id="scaled" href="graph2.htm">Change graph to one scaled around T1,T2 last eight hours</a>
+  </body>
+</html>

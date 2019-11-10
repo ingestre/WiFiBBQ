@@ -1,0 +1,70 @@
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+   "http://www.w3.org/TR/html4/frameset.dtd">
+<html>
+<head>
+<script>
+var connection = null;
+
+function sendRGB() {
+	var r = parseInt(document.getElementById('r').value).toString(16);
+	var g = parseInt(document.getElementById('g').value).toString(16);
+	var b = parseInt(document.getElementById('b').value).toString(16);
+	if(r.length < 2) { r = '0' + r; }
+	if(g.length < 2) { g = '0' + g; } 
+	if(b.length < 2) { b = '0' + b; }   
+	var rgb = '#'+r+g+b;
+	console.log('RGB: ' + rgb); 
+	connection.send(rgb);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+
+  'use strict';
+
+  function start(){
+
+    connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);
+	connection.onopen = function () {  connection.send('Connect ' + new Date()); };
+	connection.onerror = function (error) { console.log('WebSocket Error ', error);};
+	connection.onclose = function(){ console.log('Closed!'); check(); };
+	connection.onmessage = function (e) { 
+	  var payload=e.data;
+	  if (payload.substr(0,1)=='#') {
+		var hexstr = payload.substr(1,7)
+		var decnum = parseInt(hexstr,16);
+		var r = (decnum >> 16) & 255;
+		var g = (decnum >> 8) & 255;
+		var b = decnum & 255
+		if (document.getElementById('r').value!=r) { document.getElementById('r').value=r; }
+		if (document.getElementById('g').value!=g) { document.getElementById('g').value=g; }
+		if (document.getElementById('b').value!=b) { document.getElementById('b').value=b; }
+	  }
+	};
+
+  }
+
+  function check(){
+    if(!connection || connection.readyState == 3) start();
+  }
+
+  start();
+
+  setInterval(check, 5000);
+
+
+
+});
+
+
+
+</script>
+</head>
+<body>LED Control:<br/><br/>
+R: <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
+<br/>
+G: <input id="g" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
+<br/>
+B: <input id="b" type="range" min="0" max="255" step="1" oninput="sendRGB();" />
+<br/>
+</body>
+</html>
